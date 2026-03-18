@@ -7,81 +7,71 @@ let window_height = 400;
 canvas.width = window_width;
 canvas.height = window_height;
 
+// 🫧 CLASE
 class Circle {
-  constructor(x, y, radius, color, text, speed) {
+  constructor(x, y, radius, color) {
     this.posX = x;
     this.posY = y;
     this.radius = radius;
     this.color = color;
-    this.text = text;
-    this.speed = speed;
 
-    this.dx = this.speed;
-    this.dy = this.speed;
+    this.dx = (Math.random() - 0.5) * 2;
+    this.dy = 0;
+
+    this.gravity = 0.4;
+    this.friction = 0.6;
+
+    this.life = 1;
+    this.bounces = 0;
   }
 
-draw(context) {
-  context.beginPath();
+  draw(context) {
+    context.beginPath();
 
-  // 🫧 Color con transparencia
-  context.fillStyle = this.color; // usa rgba desde la creación
-  context.arc(this.posX, this.posY, this.radius, 0, Math.PI * 2);
-  
-  // 🌫️ Sombra suave
-  context.shadowColor = "rgba(0,0,0,0.2)";
-  context.shadowBlur = 10;
+    context.globalAlpha = this.life;
 
-  context.fill();
+    // relleno
+    context.fillStyle = this.color;
+    context.arc(this.posX, this.posY, this.radius, 0, Math.PI * 2);
+    context.fill();
 
-  // 🔲 Borde blanco suave
-  context.strokeStyle = "rgba(255,255,255,0.8)";
-  context.lineWidth = 2;
-  context.stroke();
+    // borde blanco
+    context.strokeStyle = "rgba(255,255,255,0.8)";
+    context.lineWidth = 2;
+    context.stroke();
 
-  context.closePath();
-
-  // ✨ Brillo (efecto burbuja)
-  context.beginPath();
-  context.arc(
-    this.posX - this.radius / 3,
-    this.posY - this.radius / 3,
-    this.radius / 4,
-    0,
-    Math.PI * 2
-  );
-  context.fillStyle = "rgba(255,255,255,0.6)";
-  context.fill();
-  context.closePath();
-
-  // 🔤 Texto
-  context.fillStyle = "#000";
-  context.textAlign = "center";
-  context.textBaseline = "middle";
-  context.font = "14px Arial";
-  context.fillText(this.text, this.posX, this.posY);
-}
+    context.closePath();
+    context.globalAlpha = 1;
+  }
 
   update(context) {
     this.draw(context);
 
-    if (this.posX + this.radius > window_width) {
-      this.posX = window_width - this.radius;
-      this.dx = -this.dx;
-    }
+    // gravedad
+    this.dy += this.gravity;
 
-    if (this.posX - this.radius < 0) {
-      this.posX = this.radius;
-      this.dx = -this.dx;
-    }
-
-    if (this.posY + this.radius > window_height) {
+    // suelo
+    if (this.posY + this.radius >= window_height) {
       this.posY = window_height - this.radius;
-      this.dy = -this.dy;
+
+      this.dy *= -this.friction;
+      this.bounces++;
+
+      if (this.bounces > 5) {
+        this.dy = 0;
+        this.life -= 0.03;
+      }
     }
 
-    if (this.posY - this.radius < 0) {
-      this.posY = this.radius;
-      this.dy = -this.dy;
+    // paredes laterales
+    if (this.posX + this.radius >= window_width) {
+      this.posX = window_width - this.radius;
+      this.dx *= -1;
+    }
+
+    if (this.posX - this.radius <= 0) {
+      this.posX = this.radius;
+      this.dx *= -1;
     }
 
     this.posX += this.dx;
@@ -89,41 +79,65 @@ draw(context) {
   }
 }
 
+// 🔁 ARRAY GLOBAL
 let circles = [];
+let maxCircles = 5;
 
-function generarCirculos(cantidad) {
-  circles = [];
+// 🫧 GENERADOR
+function generarCirculo() {
+  let radius = Math.random() * 30 + 20;
 
-  for (let i = 0; i < cantidad; i++) {
-    let radius = Math.random() * 30 + 20;
+  let x = Math.random() * (window_width - 2 * radius) + radius;
+  let y = -radius;
 
-    let x = Math.random() * (window_width - 2 * radius) + radius;
-    let y = Math.random() * (window_height - 2 * radius) + radius;
+  let color = `rgba(${Math.random()*255}, ${Math.random()*255}, ${Math.random()*255}, 0.4)`;
 
-    let color = `hsl(${Math.random() * 360},70%,50%)`;
-    let speed = Math.random() * 3 + 1;
-
-    circles.push(new Circle(x, y, radius, color, i + 1, speed));
-  }
+  return new Circle(x, y, radius, color);
 }
 
+// 🎛️ CONTROLES
 function aplicarCambios() {
-  let cantidad = document.getElementById("numCircles").value;
+  maxCircles = parseInt(document.getElementById("numCircles").value);
   window_width = parseInt(document.getElementById("canvasWidth").value);
   window_height = parseInt(document.getElementById("canvasHeight").value);
 
   canvas.width = window_width;
   canvas.height = window_height;
 
-  generarCirculos(cantidad);
+  circles = []; // limpiar
 }
 
+// 🔥 SPAWNER ALEATORIO
+function spawner() {
+  if (circles.length < maxCircles) {
+    circles.push(generarCirculo());
+
+    // 🔥 probabilidad de que salgan varias juntas
+    if (Math.random() < 0.3 && circles.length < maxCircles) {
+      circles.push(generarCirculo());
+    }
+  }
+
+  let delay = Math.random() * 1000 + 200; // entre 200ms y 1200ms
+  setTimeout(spawner, delay);
+}
+
+// 🎬 ANIMACIÓN
 function animate() {
   requestAnimationFrame(animate);
   ctx.clearRect(0, 0, window_width, window_height);
 
-  circles.forEach(c => c.update(ctx));
+  circles.forEach((c, index) => {
+    c.update(ctx);
+
+    // eliminar si muere
+    if (c.life <= 0) {
+      circles.splice(index, 1);
+    }
+  });
 }
 
+// 🚀 INICIO
 aplicarCambios();
+spawner();
 animate();
