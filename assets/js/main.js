@@ -1,15 +1,11 @@
 const canvas = document.getElementById("canvas");
-let ctx = canvas.getContext("2d");
+const ctx = canvas.getContext("2d");
 
-//Obtiene las dimensiones de la pantalla actual
-const window_height = window.innerHeight/2;
-const window_width = window.innerWidth/2;
+let window_width = 600;
+let window_height = 400;
 
-//El canvas tiene las mismas dimensiones que la pantalla
-canvas.height = window_height;
 canvas.width = window_width;
-
-canvas.style.background = "#ff8";
+canvas.height = window_height;
 
 class Circle {
   constructor(x, y, radius, color, text, speed) {
@@ -18,91 +14,116 @@ class Circle {
     this.radius = radius;
     this.color = color;
     this.text = text;
-
     this.speed = speed;
 
-    this.dx = 1 * this.speed;
-    this.dy = 1 * this.speed;
+    this.dx = this.speed;
+    this.dy = this.speed;
   }
 
-  draw(context) {
-    context.beginPath();
+draw(context) {
+  context.beginPath();
 
-    context.strokeStyle = this.color;
-    context.textAlign = "center";
-    context.textBaseline = "middle";
-    context.font = "20px Arial";
-    context.fillText(this.text, this.posX, this.posY);
+  // 🫧 Color con transparencia
+  context.fillStyle = this.color; // usa rgba desde la creación
+  context.arc(this.posX, this.posY, this.radius, 0, Math.PI * 2);
+  
+  // 🌫️ Sombra suave
+  context.shadowColor = "rgba(0,0,0,0.2)";
+  context.shadowBlur = 10;
 
-    context.lineWidth = 2;
-    context.arc(this.posX, this.posY, this.radius, 0, Math.PI * 2, false);
-    context.stroke();
-    context.closePath();
-  }
+  context.fill();
+
+  // 🔲 Borde blanco suave
+  context.strokeStyle = "rgba(255,255,255,0.8)";
+  context.lineWidth = 2;
+  context.stroke();
+
+  context.closePath();
+
+  // ✨ Brillo (efecto burbuja)
+  context.beginPath();
+  context.arc(
+    this.posX - this.radius / 3,
+    this.posY - this.radius / 3,
+    this.radius / 4,
+    0,
+    Math.PI * 2
+  );
+  context.fillStyle = "rgba(255,255,255,0.6)";
+  context.fill();
+  context.closePath();
+
+  // 🔤 Texto
+  context.fillStyle = "#000";
+  context.textAlign = "center";
+  context.textBaseline = "middle";
+  context.font = "14px Arial";
+  context.fillText(this.text, this.posX, this.posY);
+}
 
   update(context) {
-  this.draw(context);
+    this.draw(context);
 
-  // DERECHA
-  if (this.posX + this.radius > window_width) {
-    this.posX = window_width - this.radius; // 🔥 lo regresas al borde
-    this.dx = -this.dx;
+    if (this.posX + this.radius > window_width) {
+      this.posX = window_width - this.radius;
+      this.dx = -this.dx;
+    }
+
+    if (this.posX - this.radius < 0) {
+      this.posX = this.radius;
+      this.dx = -this.dx;
+    }
+
+    if (this.posY + this.radius > window_height) {
+      this.posY = window_height - this.radius;
+      this.dy = -this.dy;
+    }
+
+    if (this.posY - this.radius < 0) {
+      this.posY = this.radius;
+      this.dy = -this.dy;
+    }
+
+    this.posX += this.dx;
+    this.posY += this.dy;
   }
-
-  // IZQUIERDA
-  if (this.posX - this.radius < 0) {
-    this.posX = this.radius; // 🔥 lo colocas justo dentro
-    this.dx = -this.dx;
-  }
-
-  // ARRIBA
-  if (this.posY - this.radius < 0) {
-    this.posY = this.radius;
-    this.dy = -this.dy;
-  }
-
-  // ABAJO
-  if (this.posY + this.radius > window_height) {
-    this.posY = window_height - this.radius;
-    this.dy = -this.dy;
-  }
-
-  this.posX += this.dx;
-  this.posY += this.dy;
-}
 }
 
-/* let arrayCircle=[];
+let circles = [];
 
-for(let i=0; i<10;i++){
+function generarCirculos(cantidad) {
+  circles = [];
 
-    let randomX =  Math.random()* window_width;
-    let randomY =  Math.random()* window_height;
-    let randomRadius = Math.floor(Math.random()*100 + 30);
+  for (let i = 0; i < cantidad; i++) {
+    let radius = Math.random() * 30 + 20;
 
-    let miCirculo = new Circle(randomX, randomY, randomRadius, 'blue', i+1);
+    let x = Math.random() * (window_width - 2 * radius) + radius;
+    let y = Math.random() * (window_height - 2 * radius) + radius;
 
-    //Agrega el objeto al array
-    arrayCircle.push(miCirculo);
-    arrayCircle[i].draw(ctx);
-} */
+    let color = `hsl(${Math.random() * 360},70%,50%)`;
+    let speed = Math.random() * 3 + 1;
 
-let randomX = Math.random() * window_width;
-let randomY = Math.random() * window_height;
-let randomRadius = Math.floor(Math.random() * 100 + 30);
+    circles.push(new Circle(x, y, radius, color, i + 1, speed));
+  }
+}
 
-let miCirculo = new Circle(randomX, randomY, randomRadius, "blue", "Tec1", 5);
-miCirculo.draw(ctx);
+function aplicarCambios() {
+  let cantidad = document.getElementById("numCircles").value;
+  window_width = parseInt(document.getElementById("canvasWidth").value);
+  window_height = parseInt(document.getElementById("canvasHeight").value);
 
-let miCirculo2 = new Circle(randomX, randomY, randomRadius, "red", "Tec2", 2);
-miCirculo2.draw(ctx);
+  canvas.width = window_width;
+  canvas.height = window_height;
 
-let updateCircle = function () {
-  requestAnimationFrame(updateCircle);
- ctx.clearRect(0, 0, window_width, window_height);
-  miCirculo.update(ctx);
-  miCirculo2.update(ctx);
-};
+  generarCirculos(cantidad);
+}
 
-updateCircle();
+function animate() {
+  requestAnimationFrame(animate);
+  ctx.clearRect(0, 0, window_width, window_height);
 
+  circles.forEach(c => c.update(ctx));
+}
+
+aplicarCambios();
+animate();

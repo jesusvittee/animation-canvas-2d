@@ -1,0 +1,51 @@
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Fondo principal */
+body {
+  background: url('../img/imagen.png') no-repeat center center fixed;
+  background-size: cover;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Glassmorphism */
+.glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  border-radius: 15px;
+  border: 1px solid rgba(255,255,255,0.2);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+
+/* Canvas */
+canvas {
+  border-radius: 15px;
+  background: rgba(255,255,255,0.2);
+  max-width: 100%;
+}
+
+/* Footer */
+.footer {
+  margin-top: auto;
+  background: rgba(0, 0, 0, 0.7);
+}
+
+/* Inputs y botones */
+input.form-control {
+  border-radius: 8px;
+}
+
+button {
+  border-radius: 8px;
+  transition: 0.3s;
+}
+
+button:hover {
+  transform: scale(1.05);
+}
