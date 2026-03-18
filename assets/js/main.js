@@ -2,8 +2,8 @@ const canvas = document.getElementById("canvas");
 let ctx = canvas.getContext("2d");
 
 //Obtiene las dimensiones de la pantalla actual
-const window_height = window.innerHeight;
-const window_width = window.innerWidth;
+const window_height = window.innerHeight/2;
+const window_width = window.innerWidth/2;
 
 //El canvas tiene las mismas dimensiones que la pantalla
 canvas.height = window_height;
@@ -41,33 +41,35 @@ class Circle {
   }
 
   update(context) {
-    //context.clearRect(0, 0, window_width, window_height);
+  this.draw(context);
 
-    this.draw(context);
-
-    //Si el círculo supera el margen derecho entonces se mueve a la izquierda
-    if (this.posX + this.radius > window_width) {
-      this.dx = -this.dx;
-    }
-
-    //Si el círculo supera el margen izquierdo entonces se mueve a la derecha
-    if (this.posX - this.radius < 0) {
-      this.dx = -this.dx;
-    }
-
-    //Si el círculo supera el margen superior entonces se mueve hacia abajo
-    if (this.posY - this.radius < 0) {
-      this.dy = -this.dy;
-    }
-
-    //Si el círculo supera el margen inferior entonces se mueve hacia arriba
-    if (this.posY + this.radius > window_height) {
-      this.dy = -this.dy;
-    }
-
-    this.posX += this.dx;
-    this.posY += this.dy;
+  // DERECHA
+  if (this.posX + this.radius > window_width) {
+    this.posX = window_width - this.radius; // 🔥 lo regresas al borde
+    this.dx = -this.dx;
   }
+
+  // IZQUIERDA
+  if (this.posX - this.radius < 0) {
+    this.posX = this.radius; // 🔥 lo colocas justo dentro
+    this.dx = -this.dx;
+  }
+
+  // ARRIBA
+  if (this.posY - this.radius < 0) {
+    this.posY = this.radius;
+    this.dy = -this.dy;
+  }
+
+  // ABAJO
+  if (this.posY + this.radius > window_height) {
+    this.posY = window_height - this.radius;
+    this.dy = -this.dy;
+  }
+
+  this.posX += this.dx;
+  this.posY += this.dy;
+}
 }
 
 /* let arrayCircle=[];
@@ -97,7 +99,7 @@ miCirculo2.draw(ctx);
 
 let updateCircle = function () {
   requestAnimationFrame(updateCircle);
-  ctx.clearRect(0, 0, window_width, window_height);
+ ctx.clearRect(0, 0, window_width, window_height);
   miCirculo.update(ctx);
   miCirculo2.update(ctx);
 };
