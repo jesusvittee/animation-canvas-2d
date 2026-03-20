@@ -7,6 +7,9 @@ let window_height = 400;
 canvas.width = window_width;
 canvas.height = window_height;
 
+// 🔥 dirección SOLO afecta el origen
+let direction = "top";
+
 // 🫧 CLASE
 class Circle {
   constructor(x, y, radius, color) {
@@ -18,7 +21,7 @@ class Circle {
     this.dx = (Math.random() - 0.5) * 2;
     this.dy = 0;
 
-    this.gravity = 0.4;
+    this.gravity = 0.2;   // 🔥 SIEMPRE hacia abajo
     this.friction = 0.6;
 
     this.life = 1;
@@ -47,23 +50,23 @@ class Circle {
   update(context) {
     this.draw(context);
 
-    // gravedad
+    // 🔥 GRAVEDAD SIEMPRE HACIA ABAJO
     this.dy += this.gravity;
 
-    // suelo
+    // 🧱 SUELO
     if (this.posY + this.radius >= window_height) {
       this.posY = window_height - this.radius;
-
       this.dy *= -this.friction;
       this.bounces++;
 
+      // 💨 desaparecer después de varios rebotes
       if (this.bounces > 5) {
         this.dy = 0;
-        this.life -= 0.03;
+        this.life -= 0.02;
       }
     }
 
-    // paredes laterales
+    // 🧱 paredes laterales
     if (this.posX + this.radius >= window_width) {
       this.posX = window_width - this.radius;
       this.dx *= -1;
@@ -79,20 +82,47 @@ class Circle {
   }
 }
 
-// 🔁 ARRAY GLOBAL
+// 🔁 ARRAY
 let circles = [];
 let maxCircles = 5;
 
-// 🫧 GENERADOR
+// 🫧 GENERAR SEGÚN DIRECCIÓN
 function generarCirculo() {
   let radius = Math.random() * 30 + 20;
+  let x, y;
+  let dx = (Math.random() - 0.5) * 2;
+  let dy = 0;
 
-  let x = Math.random() * (window_width - 2 * radius) + radius;
-  let y = -radius;
+  if (direction === "top") {
+    x = Math.random() * window_width;
+    y = -radius;
+  }
+
+  if (direction === "bottom") {
+    x = Math.random() * window_width;
+    y = window_height + radius;
+    dy = -3; // impulso hacia arriba
+  }
+
+  if (direction === "left") {
+    x = -radius;
+    y = Math.random() * window_height;
+    dx = Math.random() * 3;
+  }
+
+  if (direction === "right") {
+    x = window_width + radius;
+    y = Math.random() * window_height;
+    dx = -Math.random() * 3;
+  }
 
   let color = `rgba(${Math.random()*255}, ${Math.random()*255}, ${Math.random()*255}, 0.4)`;
 
-  return new Circle(x, y, radius, color);
+  let c = new Circle(x, y, radius, color);
+  c.dx = dx;
+  c.dy = dy;
+
+  return c;
 }
 
 // 🎛️ CONTROLES
@@ -101,10 +131,12 @@ function aplicarCambios() {
   window_width = parseInt(document.getElementById("canvasWidth").value);
   window_height = parseInt(document.getElementById("canvasHeight").value);
 
+  direction = document.getElementById("direction").value;
+
   canvas.width = window_width;
   canvas.height = window_height;
 
-  circles = []; // limpiar
+  circles = [];
 }
 
 // 🔥 SPAWNER ALEATORIO
@@ -112,13 +144,13 @@ function spawner() {
   if (circles.length < maxCircles) {
     circles.push(generarCirculo());
 
-    // 🔥 probabilidad de que salgan varias juntas
+    // posibilidad de que salgan varias juntas
     if (Math.random() < 0.3 && circles.length < maxCircles) {
       circles.push(generarCirculo());
     }
   }
 
-  let delay = Math.random() * 1000 + 200; // entre 200ms y 1200ms
+  let delay = Math.random() * 1000 + 300;
   setTimeout(spawner, delay);
 }
 
@@ -130,7 +162,6 @@ function animate() {
   circles.forEach((c, index) => {
     c.update(ctx);
 
-    // eliminar si muere
     if (c.life <= 0) {
       circles.splice(index, 1);
     }
