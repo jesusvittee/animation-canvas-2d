@@ -4,7 +4,9 @@
   padding: 0;
   box-sizing: border-box;
 }
-
+.navbar{
+  background: rgba(0, 0, 0, 0.7);
+}
 /* Fondo principal */
 body {
   background: url('../img/imagen.png') no-repeat center center fixed;
@@ -33,7 +35,6 @@ canvas {
 /* Footer */
 .footer {
   margin-top: auto;
-  background: rgba(0, 0, 0, 0.7);
 }
 
 /* Inputs y botones */
